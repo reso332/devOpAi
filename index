@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevOp AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --sidebar-width: 300px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            line-height: 1.6;
+            transform: scale(0.9);
+            transform-origin: center center;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* الشريط الجانبي */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: white;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            height: 100vh;
+            position: fixed;
+            right: 0;
+            top: 0;
+            padding: 15px;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+        
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .close-sidebar {
+            background: #eff6ff;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--primary);
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .close-sidebar:hover {
+            background: #dbeafe;
+            transform: rotate(90deg);
+        }
+        
+        .sidebar-section {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-title i {
+            font-size: 16px;
+        }
+        
+        .input-group {
+            margin-bottom: 12px;
+        }
+        
+        .input-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 13px;
+        }
+        
+        .code-input {
+            width: 100%;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px 12px;
+            color: var(--dark);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .code-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+        
+        .submit-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 15px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .submit-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .code-output {
+            margin-top: 12px;
+            padding: 12px;
+            background: white;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            display: none;
+            border: 1px solid #e2e8f0;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+        
+        .code-output.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        .code-output.copied {
+            background: #dcfce7;
+            border-color: var(--success);
+        }
+        
+        .copy-hint {
+            position: absolute;
+            top: -22px;
+            left: 0;
+            background: var(--dark);
+            color: white;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .code-output:hover .copy-hint {
+            opacity: 1;
+        }
+        
+        /* المحتوى الرئيسي */
+        .main-content {
+            flex: 1;
+            margin-right: var(--sidebar-width);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            transform: scale(0.95);
+            transform-origin: top center;
+        }
+        
+        .header {
+            padding: 15px 20px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .logo i {
+            font-size: 20px;
+        }
+        
+        .balance-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .balance-amount {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary);
+            background: #eff6ff;
+            padding: 6px 12px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .add-balance {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .add-balance:hover {
+            background: var(--primary-dark);
+            transform: rotate(90deg);
+        }
+        
+        .menu-toggle {
+            display: none;
+            background: #eff6ff;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--primary);
+            font-size: 16px;
+        }
+        
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 15px 20px;
+            overflow: hidden;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+        
+        .message {
+            padding: 10px 14px;
+            border-radius: 10px;
+            max-width: 80%;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .user-message {
+            background: #dbeafe;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .ai-message {
+            background: #f1f5f9;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+            border-left: 2px solid var(--primary);
+        }
+        
+        .error-message {
+            background: #fee2e2;
+            color: var(--danger);
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 2px solid var(--danger);
+            font-size: 14px;
+        }
+        
+        .thinking {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--secondary);
+            font-style: italic;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        
+        .thinking-dots {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .thinking-dots span {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--secondary);
+            animation: thinking 1.5s infinite ease-in-out;
+        }
+        
+        .thinking-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .thinking-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        .chat-input-container {
+            background: white;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            gap: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .chat-input {
+            flex: 1;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 12px 14px;
+            color: var(--dark);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+        
+        .send-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .send-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .send-btn:disabled {
+            background: var(--secondary);
+            cursor: not-allowed;
+        }
+        
+        .char-counter {
+            text-align: left;
+            font-size: 12px;
+            color: var(--secondary);
+            margin-top: 6px;
+            padding: 0 4px;
+        }
+        
+        /* نافذة إضافة الرصيد */
+        .payment-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .payment-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .payment-content {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .payment-modal.active .payment-content {
+            transform: translateY(0);
+        }
+        
+        .payment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .payment-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .close-modal {
+            background: #eff6ff;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--primary);
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .close-modal:hover {
+            background: #dbeafe;
+            transform: rotate(90deg);
+        }
+        
+        /* الإشعارات */
+        .notification {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            padding: 10px 16px;
+            border-radius: 6px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: white;
+            color: var(--dark);
+            border: 1px solid #e2e8f0;
+            font-size: 13px;
+            max-width: 300px;
+        }
+        
+        .cost-notification {
+            border-left: 3px solid var(--danger);
+        }
+        
+        .copy-notification {
+            border-left: 3px solid var(--success);
+        }
+        
+        .error-notification {
+            border-left: 3px solid var(--warning);
+        }
+        
+        .notification.active {
+            display: block;
+        }
+        
+        .error-message {
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+        
+        .error-message.active {
+            display: block;
+        }
+        
+        /* الرسوم المتحركة */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes thinking {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        
+        @keyframes balanceIncrease {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* التجاوب مع الشاشات الصغيرة */
+        @media (max-width: 900px) {
+            body {
+                transform: scale(1);
+                overflow: auto;
+            }
+            
+            .sidebar {
+                transform: translateX(100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-right: 0;
+                transform: scale(1);
+            }
+            
+            .menu-toggle {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- الشريط الجانبي -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">صناعة الأكواد</div>
+            <button class="close-sidebar" id="closeSidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="sidebar-section">
+            <div class="section-title">
+                <i class="fas fa-code"></i>
+                إنشاء كود دفع
+            </div>
+            <div class="input-group">
+                <label class="input-label">اسم الكود</label>
+                <input type="text" class="code-input" id="gemCode" placeholder="أدخل اسم الكود هنا...">
+                <div class="error-message" id="codeError"></div>
+            </div>
+            <div class="input-group">
+                <label class="input-label">قيمة الكود</label>
+                <input type="number" class="code-input" id="amountInput" placeholder="أدخل قيمة الكود هنا...">
+                <div class="error-message" id="amountError"></div>
+            </div>
+            <button class="submit-btn" id="submitGem">إنشاء الكود</button>
+            <div class="code-output" id="codeOutput">
+                <div class="copy-hint">انقر نقرًا مزدوجًا للنسخ</div>
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <div class="section-title">
+                <i class="fas fa-history"></i>
+                الأكواد المنشأة
+            </div>
+            <div id="codesList">
+                <p style="text-align: center; color: var(--secondary); font-size: 13px;">لا توجد أكواد منشأة بعد</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="main-content">
+        <div class="header">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <div class="logo">
+                <i class="fas fa-robot"></i>
+                DevOp AI
+            </div>
+            
+            <div class="balance-info">
+                <div class="balance-amount">
+                    <span id="balance">0.00$</span>
+                    <button class="add-balance" id="addBalanceBtn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai-message">
+                    مرحبًا! أنا مساعد DevOp AI. كيف يمكنني مساعدتك اليوم؟
+                </div>
+            </div>
+            
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chatInput" placeholder="اكتب رسالتك هنا...">
+                <button class="send-btn" id="sendBtn">
+                    <i class="fas fa-paper-plane"></i>
+                    إرسال
+                </button>
+            </div>
+            <div class="char-counter" id="charCounter">0 حرف - التكلفة: 0.00$</div>
+        </div>
+    </main>
+
+    <!-- نافذة إضافة الرصيد -->
+    <div class="payment-modal" id="paymentModal">
+        <div class="payment-content">
+            <div class="payment-header">
+                <div class="payment-title">إضافة رصيد</div>
+                <button class="close-modal" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">أدخل كود الدفع</label>
+                <input type="text" class="code-input" id="paymentCode" placeholder="أدخل الكود هنا...">
+                <div class="error-message" id="paymentError"></div>
+            </div>
+            
+            <button class="submit-btn" id="submitPayment">إضافة الرصيد</button>
+        </div>
+    </div>
+
+    <!-- الإشعارات -->
+    <div class="notification cost-notification" id="costNotification">
+        <i class="fas fa-coins"></i> تم خصم <span id="costAmount">0.00$</span> من رصيدك
+    </div>
+    <div class="notification copy-notification" id="copyNotification">
+        <i class="fas fa-copy"></i> تم نسخ الكود إلى الحافظة
+    </div>
+    <div class="notification error-notification" id="errorNotification">
+        <i class="fas fa-exclamation-circle"></i> <span id="errorText"></span>
+    </div>
+
+    <script>
+        // العناصر الرئيسية في DOM
+        const sidebar = document.getElementById('sidebar');
+        const menuToggle = document.getElementById('menuToggle');
+        const closeSidebar = document.getElementById('closeSidebar');
+        const balanceElement = document.getElementById('balance');
+        const addBalanceBtn = document.getElementById('addBalanceBtn');
+        const paymentModal = document.getElementById('paymentModal');
+        const closeModal = document.getElementById('closeModal');
+        const paymentCode = document.getElementById('paymentCode');
+        const paymentError = document.getElementById('paymentError');
+        const submitPayment = document.getElementById('submitPayment');
+        const gemCodeInput = document.getElementById('gemCode');
+        const codeError = document.getElementById('codeError');
+        const amountInput = document.getElementById('amountInput');
+        const amountError = document.getElementById('amountError');
+        const submitGem = document.getElementById('submitGem');
+        const codeOutput = document.getElementById('codeOutput');
+        const codesList = document.getElementById('codesList');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const costNotification = document.getElementById('costNotification');
+        const costAmount = document.getElementById('costAmount');
+        const copyNotification = document.getElementById('copyNotification');
+        const errorNotification = document.getElementById('errorNotification');
+        const errorText = document.getElementById('errorText');
+        const charCounter = document.getElementById('charCounter');
+        
+        // حالة التطبيق
+        let balance = 0;
+        let chatHistory = [];
+        let generatedCodes = {};
+        let isThinking = false;
+        const apiKey = 'AIzaSyD6cCU27umUdAj2HvxZkamAUDsqruROf2A';
+        
+        // تهيئة الأحداث
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.add('active');
+        });
+        
+        closeSidebar.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+        });
+        
+        addBalanceBtn.addEventListener('click', () => {
+            paymentModal.classList.add('active');
+        });
+        
+        closeModal.addEventListener('click', () => {
+            paymentModal.classList.remove('active');
+            paymentCode.value = '';
+            paymentError.classList.remove('active');
+        });
+        
+        submitPayment.addEventListener('click', processPayment);
+        
+        submitGem.addEventListener('click', generateCode);
+        
+        // التحقق من صحة إدخال اسم الكود
+        gemCodeInput.addEventListener('input', () => {
+            if (gemCodeInput.value.length > 2) {
+                codeError.classList.remove('active');
+            } else {
+                codeError.textContent = "يجب أن يكون اسم الكود أكثر من حرفين";
+                codeError.classList.add('active');
+            }
+        });
+        
+        // التحقق من صحة إدخال المبلغ
+        amountInput.addEventListener('input', () => {
+            if (amountInput.value && parseFloat(amountInput.value) > 0) {
+                amountError.classList.remove('active');
+            } else {
+                amountError.textContent = "يجب إدخال مبلغ صحيح أكبر من الصفر";
+                amountError.classList.add('active');
+            }
+        });
+        
+        sendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // حساب تكلفة الأحرف أثناء الكتابة
+        chatInput.addEventListener('input', () => {
+            updateCharCounter();
+            sendBtn.disabled = !chatInput.value.trim() || balance <= 0 || (chatInput.value.length * 1) > balance;
+        });
+        
+        function updateCharCounter() {
+            const charCount = chatInput.value.length;
+            const cost = charCount * 1;
+            charCounter.textContent = `${charCount} حرف - التكلفة: ${cost.toFixed(2)}$`;
+            
+            if (cost > balance) {
+                charCounter.style.color = "#ef4444";
+            } else {
+                charCounter.style.color = "#64748b";
+            }
+        }
+        
+        // معالجة الدفع باستخدام الأكواد الحقيقية
+        function processPayment() {
+            const code = paymentCode.value.trim();
+            paymentError.classList.remove('active');
+            
+            if (!code) {
+                paymentError.textContent = "يجب إدخال كود الدفع";
+                paymentError.classList.add('active');
+                return;
+            }
+            
+            if (generatedCodes[code]) {
+                const amount = generatedCodes[code];
+                
+                // تأثير زيادة الرصيد تدريجيًا
+                const targetBalance = balance + amount;
+                const increment = amount / 20;
+                let current = balance;
+                
+                const animateBalance = setInterval(() => {
+                    current += increment;
+                    if (current >= targetBalance) {
+                        current = targetBalance;
+                        clearInterval(animateBalance);
+                    }
+                    balance = current;
+                    updateBalance();
+                }, 50);
+                
+                delete generatedCodes[code];
+                updateCodesList();
+                
+                paymentCode.value = '';
+                paymentModal.classList.remove('active');
+                showNotification(`تم إضافة ${amount.toFixed(2)}$ إلى رصيدك بنجاح`, 'success');
+                
+            } else {
+                paymentError.textContent = "كود الدفع غير صحيح أو منتهي الصلاحية";
+                paymentError.classList.add('active');
+            }
+        }
+        
+        // إنشاء كود دفع حقيقي
+        function generateCode() {
+            const codeName = gemCodeInput.value.trim();
+            const amount = parseFloat(amountInput.value);
+            
+            if (!codeName || codeName.length < 3) {
+                codeError.textContent = "يجب إدخال اسم كود صحيح (3 أحرف على الأقل)";
+                codeError.classList.add('active');
+                return;
+            }
+            
+            if (!amount || amount <= 0) {
+                amountError.textContent = "يجب إدخال مبلغ صحيح أكبر من الصفر";
+                amountError.classList.add('active');
+                return;
+            }
+            
+            // إنشاء كود فريد
+            const code = `DEVOP-${codeName.toUpperCase()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+            
+            // حفظ الكود وقيمته
+            generatedCodes[code] = amount;
+            
+            // عرض الكود مع إمكانية النسخ بالنقر المزدوج
+            codeOutput.textContent = `${code} - ${amount.toFixed(2)}$`;
+            codeOutput.classList.add('active');
+            
+            // إضافة حدث النقر المزدوج لنسخ الكود
+            codeOutput.ondblclick = function() {
+                navigator.clipboard.writeText(code).then(() => {
+                    codeOutput.classList.add('copied');
+                    showNotification("تم نسخ الكود إلى الحافظة", 'copy');
+                    
+                    setTimeout(() => {
+                        codeOutput.classList.remove('copied');
+                    }, 2000);
+                });
+            };
+            
+            // إعادة تعيين الحقول وتحديث القائمة
+            gemCodeInput.value = '';
+            amountInput.value = '';
+            updateCodesList();
+            
+            showNotification("تم إنشاء الكود بنجاح", 'success');
+        }
+        
+        // تحديث قائمة الأكواد
+        function updateCodesList() {
+            if (Object.keys(generatedCodes).length === 0) {
+                codesList.innerHTML = '<p style="text-align: center; color: var(--secondary); font-size: 13px;">لا توجد أكواد منشأة بعد</p>';
+                return;
+            }
+            
+            let html = '';
+            for (const [code, amount] of Object.entries(generatedCodes)) {
+                html += `
+                    <div style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-size: 13px;">
+                        <div style="font-family: 'Courier New', monospace;">${code}</div>
+                        <div style="color: var(--primary); font-weight: 500;">${amount.toFixed(2)}$</div>
+                    </div>
+                `;
+            }
+            
+            codesList.innerHTML = html;
+        }
+        
+        // إرسال رسالة إلى الذكاء الاصطناعي
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            const charCount = message.length;
+            const cost = charCount * 1;
+            
+            if (!message) {
+                showNotification("يرجى إدخال رسالة", 'error');
+                return;
+            }
+            
+            if (balance < cost) {
+                showNotification("رصيدك غير كافٍ لإرسال هذه الرسالة", 'error');
+                return;
+            }
+            
+            // إضافة رسالة المستخدم إلى الدردشة
+            addMessageToChat(message, 'user');
+            chatInput.value = '';
+            updateCharCounter();
+            sendBtn.disabled = true;
+            
+            // خصم تكلفة الرسالة
+            balance -= cost;
+            updateBalance();
+            
+            showNotification(`تم خصم ${cost.toFixed(2)}$ من رصيدك`, 'cost');
+            
+            // عرض مؤشر "جاري التفكير"
+            showThinkingIndicator();
+            
+            // استخدام API الفعلي للذكاء الاصطناعي
+            try {
+                const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: message
+                            }]
+                        }]
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || 'فشل في الاتصال بالخادم');
+                }
+                
+                const data = await response.json();
+                
+                if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                    throw new Error('رد غير متوقع من الخادم');
+                }
+                
+                const aiResponse = data.candidates[0].content.parts[0].text;
+                
+                removeThinkingIndicator();
+                addMessageToChat(aiResponse, 'ai');
+                
+            } catch (error) {
+                console.error('Error calling Gemini API:', error);
+                removeThinkingIndicator();
+                
+                // إضافة رسالة خطأ
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.innerHTML = `
+                    <div><strong>حدث خطأ في الاتصال بالذكاء الاصطناعي:</strong></div>
+                    <div>${error.message || 'يرجى المحاولة مرة أخرى لاحقًا'}</div>
+                `;
+                chatMessages.appendChild(errorDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // إعادة الرصيد في حالة الخطأ
+                balance += cost;
+                updateBalance();
+            }
+            
+            sendBtn.disabled = !chatInput.value.trim() || balance <= 0;
+        }
+        
+        // عرض مؤشر "جاري التفكير"
+        function showThinkingIndicator() {
+            isThinking = true;
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.className = 'thinking';
+            thinkingDiv.id = 'thinkingIndicator';
+            thinkingDiv.innerHTML = `
+                <span>جاري التفكير</span>
+                <div class="thinking-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            `;
+            chatMessages.appendChild(thinkingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // إزالة مؤشر "جاري التفكير"
+        function removeThinkingIndicator() {
+            isThinking = false;
+            const thinkingIndicator = document.getElementById('thinkingIndicator');
+            if (thinkingIndicator) {
+                thinkingIndicator.remove();
+            }
+        }
+        
+        // إضافة رسالة إلى الدردشة
+        function addMessageToChat(message, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.classList.add(sender === 'user' ? 'user-message' : 'ai-message');
+            messageElement.textContent = message;
+            
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            chatHistory.push({ sender, message });
+        }
+        
+        // تحديث عرض الرصيد
+        function updateBalance() {
+            balanceElement.textContent = balance.toFixed(2) + '$';
+            sendBtn.disabled = !chatInput.value.trim() || balance <= 0 || (chatInput.value.length * 1) > balance;
+            
+            // تأثير عند تغيير الرصيد
+            balanceElement.style.animation = 'none';
+            setTimeout(() => {
+                balanceElement.style.animation = 'balanceIncrease 0.5s ease';
+            }, 10);
+        }
+        
+        // عرض الإشعارات
+        function showNotification(message, type) {
+            if (type === 'cost') {
+                costAmount.textContent = message.split(' ')[2];
+                costNotification.classList.add('active');
+                setTimeout(() => {
+                    costNotification.classList.remove('active');
+                }, 3000);
+            } 
+            else if (type === 'copy') {
+                copyNotification.classList.add('active');
+                setTimeout(() => {
+                    copyNotification.classList.remove('active');
+                }, 3000);
+            }
+            else if (type === 'error') {
+                errorText.textContent = message;
+                errorNotification.classList.add('active');
+                setTimeout(() => {
+                    errorNotification.classList.remove('active');
+                }, 3000);
+            }
+            else if (type === 'success') {
+                errorText.textContent = message;
+                errorNotification.classList.add('active');
+                setTimeout(() => {
+                    errorNotification.classList.remove('active');
+                }, 3000);
+            }
+        }
+        
+        // تهيئة التطبيق
+        function initApp() {
+            updateBalance();
+            updateCharCounter();
+            updateCodesList();
+            
+            // إضافة رسالة ترحيبية من الذكاء الاصطناعي
+            setTimeout(() => {
+                addMessageToChat('مرحبًا! أنا مساعد DevOp AI. كيف يمكنني مساعدتك اليوم؟', 'ai');
+            }, 500);
+        }
+        
+        // بدء التطبيق
+        initApp();
+    </script>
+</body>
+</html>
